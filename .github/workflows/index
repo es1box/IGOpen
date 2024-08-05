@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Death Screen</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            position: relative;
+            animation: fadeInBody 1s ease-in-out;
+        }
+        @keyframes fadeInBody {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .container {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+            animation: fadeInContainer 1s ease-in-out;
+            z-index: 1;
+        }
+        @keyframes fadeInContainer {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .logo {
+            margin-right: 20px;
+            animation: slideIn 1s ease-in-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(-50px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .message {
+            font-size: 36px;
+            font-weight: bold;
+            animation: fadeIn 2s ease-in-out;
+        }
+        .sub-message {
+            font-size: 28px;
+            margin-top: 10px;
+            animation: fadeIn 2.5s ease-in-out;
+        }
+        .timer {
+            font-size: 22px;
+            margin-top: 20px;
+            animation: fadeIn 3s ease-in-out;
+        }
+        .background-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+        .background-animation canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .fade-out {
+            animation: fadeOut 1s ease-in-out forwards;
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation">
+        <canvas id="backgroundCanvas"></canvas>
+    </div>
+    <div class="container">
+        <div class="header">
+            <img src="materials/yourlogo.png" alt="IG Logo" class="logo" width="64" height="64">
+            <div class="message">IG | Galactic Conflict</div>
+        </div>
+        <div class="sub-message">ВЫ УМЕРЛИ</div>
+        <div class="timer">Респавн через <span id="timer">10</span> секунд</div>
+    </div>
+    <audio id="backgroundMusic" src="asset://sounds/deathscreen.mp3" loop></audio>
+    <audio id="endSound" src="asset://sounds/deathscreenback.mp3"></audio>
+    <script>
+        let respawnTime = 10;
+        let startTime = new Date().getTime();
+        let fadeOutTriggered = false;
+
+        function updateTimer() {
+            let elapsed = (new Date().getTime() - startTime) / 1000;
+            let timeLeft = Math.max(0, respawnTime - elapsed);
+            document.getElementById('timer').innerText = Math.ceil(timeLeft);
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                if (!fadeOutTriggered) {
+                    fadeOutScreen();
+                    playEndSound();
+                    fadeOutTriggered = true;
+                }
+            }
+        }
+
+        const timerInterval = setInterval(updateTimer, 100);
+
+        function fadeOutScreen() {
+            document.body.classList.add('fade-out');
+        }
+
+        function playEndSound() {
+            const endSound = document.getElementById('endSound');
+            endSound.volume = 0.5;
+            endSound.play();
+        }
+
+        const canvas = document.getElementById('backgroundCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let particleCount = 100;
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        function createParticles() {
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 5 + 1,
+                    speedX: Math.random() * 2 - 1,
+                    speedY: Math.random() * 2 - 1,
+                    opacity: Math.random()
+                });
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let particle of particles) {
+                ctx.globalAlpha = particle.opacity;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.fill();
+                particle.x += particle.speedX;
+                particle.y += particle.speedY;
+                if (particle.x > canvas.width || particle.x < 0) particle.speedX *= -1;
+                if (particle.y > canvas.height || particle.y < 0) particle.speedY *= -1;
+            }
+            requestAnimationFrame(animateParticles);
+        }
+
+        createParticles();
+        animateParticles();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        backgroundMusic.volume = 0.5;
+        backgroundMusic.play();
+    </script>
+</body>
+</html>
