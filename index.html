@@ -103,7 +103,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>ЖМЯК❤️</h1>
+        <h1>Жмяк❤️❤️❤️</h1>
         <div class="messages" id="messages"></div>
         <div class="input-group">
             <input type="text" id="name" placeholder="Ваше имя">
@@ -112,7 +112,7 @@
             <textarea id="message" rows="4" placeholder="Ваше сообщение"></textarea>
         </div>
         <div class="input-group">
-            <button onclick="addMessage()">Отправить</button>
+            <button id="sendButton">Отправить</button>
         </div>
     </div>
 
@@ -158,22 +158,8 @@
             requestAnimationFrame(animateParticles);
         }
 
-        window.onload = () => {
-            resizeCanvas();
-            createParticles();
-            animateParticles();
-            loadMessages();
-        };
-
-        window.onresize = () => {
-            resizeCanvas();
-        };
-
-        async function loadMessages() {
-            const response = await fetch('https://api.github.com/repos/es1box/IGOpen/contents/messages.json', {
-                headers: { 'Accept': 'application/vnd.github.v3.raw' }
-            });
-            const messages = await response.json() || [];
+        function loadMessages() {
+            const messages = JSON.parse(localStorage.getItem('messages')) || [];
             const messagesDiv = document.getElementById('messages');
             messagesDiv.innerHTML = '';
 
@@ -185,7 +171,7 @@
             });
         }
 
-        async function addMessage() {
+        function addMessage() {
             const name = document.getElementById('name').value;
             const messageText = document.getElementById('message').value;
             if (!name || !messageText) {
@@ -193,45 +179,29 @@
                 return;
             }
 
-            const response = await fetch('https://api.github.com/repos/es1box/IGOpen/contents/messages.json', {
-                headers: { 'Accept': 'application/vnd.github.v3.raw' }
-            });
-            const messages = await response.json() || [];
+            const messages = JSON.parse(localStorage.getItem('messages')) || [];
             messages.push({ name, text: messageText, timestamp: new Date().getTime() });
 
-            const updatedMessages = JSON.stringify(messages, null, 2);
-            const sha = await getSha();
+            localStorage.setItem('messages', JSON.stringify(messages));
 
-            const token = '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'; // Ваш GitHub токен
+            document.getElementById('name').value = '';
+            document.getElementById('message').value = '';
 
-            const updateResponse = await fetch('https://api.github.com/repos/es1box/IGOpen/contents/messages.json', {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `token ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: 'Update messages',
-                    content: btoa(updatedMessages),
-                    sha: sha
-                })
-            });
-
-            if (updateResponse.ok) {
-                document.getElementById('name').value = '';
-                document.getElementById('message').value = '';
-                loadMessages();
-            } else {
-                console.error('Ошибка при обновлении сообщений:', updateResponse.statusText);
-                alert('Произошла ошибка при отправке сообщения');
-            }
+            loadMessages();
         }
 
-        async function getSha() {
-            const response = await fetch('https://api.github.com/repos/es1box/IGOpen/contents/messages.json');
-            const data = await response.json();
-            return data.sha;
-        }
+        document.getElementById('sendButton').addEventListener('click', addMessage);
+
+        window.onload = () => {
+            resizeCanvas();
+            createParticles();
+            animateParticles();
+            loadMessages();
+        };
+
+        window.onresize = () => {
+            resizeCanvas();
+        };
     </script>
 </body>
 </html>
