@@ -37,7 +37,7 @@
             margin-bottom: 20px;
             max-height: 400px;
             overflow-y: auto;
-            padding-right: 10px; /* Для обеспечения удобного скроллинга */
+            padding-right: 10px;
         }
 
         .message {
@@ -202,10 +202,12 @@
             const updatedMessages = JSON.stringify(messages, null, 2);
             const sha = await getSha();
 
-            await fetch('https://api.github.com/repos/es1box/IGOpen/contents/messages.json', {
+            const token = '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'; // Ваш GitHub токен
+
+            const updateResponse = await fetch('https://api.github.com/repos/es1box/IGOpen/contents/messages.json', {
                 method: 'PUT',
                 headers: {
-                    'Authorization': 'token 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', // Замените 'ghp_yourGitHubToken' на ваш действительный токен
+                    'Authorization': `token ${token}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
@@ -215,10 +217,14 @@
                 })
             });
 
-            document.getElementById('name').value = '';
-            document.getElementById('message').value = '';
-
-            loadMessages();
+            if (updateResponse.ok) {
+                document.getElementById('name').value = '';
+                document.getElementById('message').value = '';
+                loadMessages();
+            } else {
+                console.error('Ошибка при обновлении сообщений:', updateResponse.statusText);
+                alert('Произошла ошибка при отправке сообщения');
+            }
         }
 
         async function getSha() {
