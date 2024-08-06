@@ -103,7 +103,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>ЖМЯК ЖМЯК</h1>
+        <h1>Жмякаться!!!</h1>
         <div class="messages" id="messages"></div>
         <div class="input-group">
             <input type="text" id="name" placeholder="Ваше имя">
@@ -200,6 +200,8 @@
             messages.push({ name, text: messageText, timestamp: new Date().getTime() });
 
             const updatedMessages = JSON.stringify(messages, null, 2);
+            const sha = await getSha();
+
             await fetch('https://api.github.com/repos/es1box/IGOpen/contents/messages.json', {
                 method: 'PUT',
                 headers: {
@@ -209,7 +211,7 @@
                 body: JSON.stringify({
                     message: 'Update messages',
                     content: btoa(updatedMessages),
-                    sha: await getSha()
+                    sha: sha
                 })
             });
 
@@ -220,9 +222,7 @@
         }
 
         async function getSha() {
-            const response = await fetch('https://api.github.com/repos/es1box/IGOpen/contents/messages.json', {
-                headers: { 'Accept': 'application/vnd.github.v3.raw' }
-            });
+            const response = await fetch('https://api.github.com/repos/es1box/IGOpen/contents/messages.json');
             const data = await response.json();
             return data.sha;
         }
