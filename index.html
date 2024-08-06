@@ -2,22 +2,25 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Наши сообщения</title>
     <style>
         body {
             margin: 0;
             padding: 0;
-            overflow: hidden; /* Убираем скроллы */
-            background-color: #cfdacc; /* Цвет фона */
+            overflow: hidden;
+            background-color: #cfdacc;
             font-family: Arial, sans-serif;
-            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
 
         .container {
             position: relative;
+            width: 90%;
             max-width: 600px;
-            margin: 100px auto;
             background: #fff;
             padding: 20px;
             border-radius: 8px;
@@ -34,6 +37,7 @@
             margin-bottom: 20px;
             max-height: 400px;
             overflow-y: auto;
+            padding-right: 10px; /* Для обеспечения удобного скроллинга */
         }
 
         .message {
@@ -54,6 +58,7 @@
 
         .input-group {
             display: flex;
+            flex-direction: column;
             margin-bottom: 10px;
         }
 
@@ -62,7 +67,7 @@
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
-            margin-right: 10px;
+            margin-bottom: 10px;
         }
 
         .input-group button {
@@ -84,11 +89,21 @@
             left: 0;
             z-index: 0;
         }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+
+            .input-group input, .input-group textarea, .input-group button {
+                font-size: 16px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Наши сообщения</h1>
+        <h1>ЖМЯК ЖМЯК</h1>
         <div class="messages" id="messages"></div>
         <div class="input-group">
             <input type="text" id="name" placeholder="Ваше имя">
@@ -154,8 +169,11 @@
             resizeCanvas();
         };
 
-        function loadMessages() {
-            const messages = JSON.parse(localStorage.getItem('messages')) || [];
+        async function loadMessages() {
+            const response = await fetch('https://api.github.com/repos/es1box/IGOpen/contents/messages.json', {
+                headers: { 'Accept': 'application/vnd.github.v3.raw' }
+            });
+            const messages = await response.json() || [];
             const messagesDiv = document.getElementById('messages');
             messagesDiv.innerHTML = '';
 
@@ -167,7 +185,7 @@
             });
         }
 
-        function addMessage() {
+        async function addMessage() {
             const name = document.getElementById('name').value;
             const messageText = document.getElementById('message').value;
             if (!name || !messageText) {
@@ -175,14 +193,38 @@
                 return;
             }
 
-            const messages = JSON.parse(localStorage.getItem('messages')) || [];
+            const response = await fetch('https://api.github.com/repos/es1box/IGOpen/contents/messages.json', {
+                headers: { 'Accept': 'application/vnd.github.v3.raw' }
+            });
+            const messages = await response.json() || [];
             messages.push({ name, text: messageText, timestamp: new Date().getTime() });
-            localStorage.setItem('messages', JSON.stringify(messages));
+
+            const updatedMessages = JSON.stringify(messages, null, 2);
+            await fetch('https://api.github.com/repos/es1box/IGOpen/contents/messages.json', {
+                method: 'PUT',
+                headers: {
+                    'Authorization': 'token ghp_yourGitHubToken',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: 'Update messages',
+                    content: btoa(updatedMessages),
+                    sha: await getSha()
+                })
+            });
 
             document.getElementById('name').value = '';
             document.getElementById('message').value = '';
 
             loadMessages();
+        }
+
+        async function getSha() {
+            const response = await fetch('https://api.github.com/repos/es1box/IGOpen/contents/messages.json', {
+                headers: { 'Accept': 'application/vnd.github.v3.raw' }
+            });
+            const data = await response.json();
+            return data.sha;
         }
     </script>
 </body>
