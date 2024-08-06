@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Наши сообщения</title>
     <style>
-        /* Ваши стили */
         body {
             margin: 0;
             padding: 0;
@@ -104,7 +103,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>❤️❤️❤️</h1>
+        <h1>ЖМЯК ЖМЯК!!!</h1>
         <div class="messages" id="messages"></div>
         <div class="input-group">
             <input type="text" id="name" placeholder="Ваше имя">
@@ -120,29 +119,30 @@
     <canvas id="particleCanvas"></canvas>
 
     <!-- Firebase App (настройка) -->
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+        import { getDatabase, ref, set, onValue, push } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
-    <script>
-        // Ваши конфигурационные данные Firebase
+        // Конфигурация Firebase
         const firebaseConfig = {
-          apiKey: "AIzaSyAMQf7E2fioUpJ6iEXVeaua2FCZhh8Z0kU",
-          authDomain: "idopen.firebaseapp.com",
-          databaseURL: "https://idopen-default-rtdb.firebaseio.com/",
-          projectId: "idopen",
-          storageBucket: "idopen.appspot.com",
-          messagingSenderId: "728657805186",
-          appId: "1:728657805186:web:6d9659738091924ece599b",
-          measurementId: "G-4L4G74Y88M"
+            apiKey: "AIzaSyAMQf7E2fioUpJ6iEXVeaua2FCZhh8Z0kU",
+            authDomain: "idopen.firebaseapp.com",
+            databaseURL: "https://idopen-default-rtdb.firebaseio.com",
+            projectId: "idopen",
+            storageBucket: "idopen.appspot.com",
+            messagingSenderId: "728657805186",
+            appId: "1:728657805186:web:6d9659738091924ece599b",
+            measurementId: "G-4L4G74Y88M"
         };
 
         // Инициализация Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
 
+        // Загрузка сообщений
         function loadMessages() {
-            const messagesRef = database.ref('messages');
-            messagesRef.on('value', (snapshot) => {
+            const messagesRef = ref(database, 'messages');
+            onValue(messagesRef, (snapshot) => {
                 const messages = snapshot.val();
                 const messagesDiv = document.getElementById('messages');
                 messagesDiv.innerHTML = '';
@@ -157,6 +157,7 @@
             });
         }
 
+        // Добавление сообщения
         function addMessage() {
             const name = document.getElementById('name').value;
             const messageText = document.getElementById('message').value;
@@ -165,19 +166,25 @@
                 return;
             }
 
-            const newMessageRef = database.ref('messages').push();
-            newMessageRef.set({
+            const newMessageRef = push(ref(database, 'messages'));
+            set(newMessageRef, {
                 name: name,
                 text: messageText,
                 timestamp: new Date().getTime()
+            }).then(() => {
+                console.log("Сообщение успешно отправлено!");
+            }).catch((error) => {
+                console.error("Ошибка при отправке сообщения:", error);
             });
 
             document.getElementById('name').value = '';
             document.getElementById('message').value = '';
         }
 
+        // Привязка обработчика клика к кнопке
         document.getElementById('sendButton').addEventListener('click', addMessage);
 
+        // Загрузка сообщений при загрузке страницы
         window.onload = () => {
             loadMessages();
         };
